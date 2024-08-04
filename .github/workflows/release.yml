@@ -81,8 +81,10 @@ jobs:
       - name: Get Commit Messages
         id: get_commit_messages
         run: |
-          # Get the list of commits for the current tag
-          commits=$(git log --pretty=format:"%h %s" ${{ github.event.ref }}^..${{ github.event.ref }})
+          # Fetch the previous tag
+          previous_tag=$(git describe --tags --abbrev=0 ${GITHUB_SHA}^)
+          # Get the list of commits between the previous tag and the current tag
+          commits=$(git log --pretty=format:"%h %s" $previous_tag..${GITHUB_SHA})
           echo "commits=$commits" >> $GITHUB_ENV
 
       - name: Create Release
