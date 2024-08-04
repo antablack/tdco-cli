@@ -1,0 +1,98 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*" # Trigger on version tags
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            goos: linux
+            goarch: amd64
+            extension: ""
+          - os: macos-latest
+            goos: darwin
+            goarch: amd64
+            extension: ""
+          - os: windows-latest
+            goos: windows
+            goarch: amd64
+            extension: ".exe"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.20"
+
+      - name: Build
+        run: |
+          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -ldflags="-s -w" -o myapp-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.extension }} main.go
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: myapp-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.extension }}
+          path: myapp-${{ matrix.goos }}-${{ matrix.goarch }}${{ matrix.extension }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: .
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./myapp-linux-amd64
+          asset_name: myapp-linux-amd64
+          asset_content_type: application/octet-stream
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./myapp-darwin-amd64
+          asset_name: myapp-darwin-amd64
+          asset_content_type: application/octet-stream
+
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./myapp-windows-amd64.exe
+          asset_name: myapp-windows-amd64.exe
+          asset_content_type: application/octet-stream
