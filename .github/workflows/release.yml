@@ -81,7 +81,7 @@ jobs:
       - name: Get Commit Messages
         id: get_commit_messages
         run: |
-          # Fetch the previous tag
+          # Fetch the previous tag1
           previous_tag=$(git describe --tags --abbrev=0 HEAD^ || echo "")
           if [ -z "$previous_tag" ]; then
             # No previous tag found, use initial commit
