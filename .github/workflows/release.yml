@@ -5,6 +5,11 @@ on:
     tags:
       - "v*.*.*" # Trigger on version tags
 
+permissions:
+  contents: write  # Needed for uploading release assets and creating releases
+  packages: write  # Needed for uploading artifacts
+  actions: read    # Needed to read actions/checkout@v3 and other actions
+
 jobs:
   build:
     runs-on: ubuntu-latest
