@@ -75,4 +75,14 @@ jobs:
       - name: Create Release
         id: create_release
         run: |
+          directory="./"
+          for item in "$directory"/*; do
+            if [ -f "$item" ]; then
+              echo "$item es un archivo regular"
+            elif [ -d "$item" ]; then
+              echo "$item es un directorio"
+            else
+              echo "$item no es ni un archivo regular ni un directorio"
+            fi
+          done
           gh release create ${{ github.ref }} ./myapp-linux-amd64 ./myapp-windows-amd64.exe --title "Release ${{ github.ref }}" --notes "Automated release by GitHub Actions"
