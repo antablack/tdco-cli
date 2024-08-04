@@ -78,7 +78,14 @@ jobs:
         run: |
           gh auth login --with-token <<< ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Get Commit Messages
+        id: get_commit_messages
+        run: |
+          # Get the list of commits for the current tag
+          commits=$(git log --pretty=format:"%h %s" ${{ github.event.ref }}^..${{ github.event.ref }})
+          echo "commits=$commits" >> $GITHUB_ENV
+
       - name: Create Release
         id: create_release
         run: |
-          gh release create ${{ github.ref }} ./tdco-linux-amd64/tdco-linux-amd64 ./tdco-darwin-arm64/tdco-darwin-arm64 ./tdco-darwin-amd64/tdco-darwin-amd64 ./tdco-windows-amd64.exe/tdco-windows-amd64.exe --title "Release ${{ github.ref }}" --notes "Automated release by GitHub Actions"
+          gh release create ${{ github.ref }} ./tdco-linux-amd64/tdco-linux-amd64 ./tdco-darwin-arm64/tdco-darwin-arm64 ./tdco-darwin-amd64/tdco-darwin-amd64 ./tdco-windows-amd64.exe/tdco-windows-amd64.exe --title "Release ${{ github.ref }}" --notes "$commits"
