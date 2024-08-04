@@ -82,9 +82,14 @@ jobs:
         id: get_commit_messages
         run: |
           # Fetch the previous tag
-          previous_tag=$(git describe --tags --abbrev=0 ${GITHUB_SHA}^)
-          # Get the list of commits between the previous tag and the current tag
-          commits=$(git log --pretty=format:"%h %s" $previous_tag..${GITHUB_SHA})
+          previous_tag=$(git describe --tags --abbrev=0 HEAD^ || echo "")
+          if [ -z "$previous_tag" ]; then
+            # No previous tag found, use initial commit
+            commits=$(git log --pretty=format:"%h %s")
+          else
+            # Get the list of commits between the previous tag and the current tag
+            commits=$(git log --pretty=format:"%h %s" $previous_tag..HEAD)
+          fi
           echo "commits=$commits" >> $GITHUB_ENV
 
       - name: Create Release
